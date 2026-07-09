@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>UF – United Forces</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #02030a;
+      --bg-gradient: radial-gradient(circle at top, #1affb3 0%, #02030a 45%, #050018 100%);
+      --accent-neon: #1affb3;
+      --accent-magenta: #ff2efc;
+      --accent-gold: #ffd66b;
+      --text-main: #e9fdf7;
+      --text-soft: #9fd7c7;
+      --danger: #ff4b6b;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      overflow: hidden;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .glow-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-gradient);
+      mix-blend-mode: screen;
+      opacity: 0.35;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .page {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+    }
+
+    .orbit-layout {
+      position: relative;
+      width: min(1100px, 100%);
+      height: min(700px, 80vh);
+      border-radius: 40px;
+      background: rgba(2, 3, 10, 0.85);
+      box-shadow:
+        0 0 40px rgba(26, 255, 179, 0.25),
+        0 0 120px rgba(255, 46, 252, 0.15);
+      overflow: hidden;
+      backdrop-filter: blur(18px);
+    }
+
+    .orbit-ring {
+      position: absolute;
+      inset: 8%;
+      border-radius: 50%;
+      border: 1px dashed rgba(159, 215, 199, 0.35);
+      box-shadow: 0 0 40px rgba(26, 255, 179, 0.25);
+      animation: orbitPulse 12s linear infinite;
+    }
+
+    .orbit-ring:nth-child(2) {
+      inset: 16%;
+      border-style: solid;
+      border-color: rgba(255, 214, 107, 0.35);
+      animation-duration: 18s;
+    }
+
+    @keyframes orbitPulse {
+      0% {
+        transform: rotate(0deg) scale(1);
+        opacity: 0.7;
+      }
+      50% {
+        transform: rotate(180deg) scale(1.03);
+        opacity: 1;
+      }
+      100% {
+        transform: rotate(360deg) scale(1);
+        opacity: 0.7;
+      }
+    }
+
+    .uf-core {
+      position: absolute;
+      inset: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .uf-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.8rem 1.8rem;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 255, 179, 0.7);
+      box-shadow:
+        0 0 30px rgba(26, 255, 179, 0.8),
+        0 0 60px rgba(255, 46, 252, 0.6);
+      background: radial-gradient(circle, #02030a 0%, #041b16 60%, #02030a 100%);
+      letter-spacing: 0.35em;
+      font-weight: 700;
+      font-size: 2.4rem;
+      color: var(--accent-neon);
+      text-shadow:
+        0 0 12px rgba(26, 255, 179, 0.9),
+        0 0 24px rgba(255, 46, 252, 0.7);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .uf-logo::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background: conic-gradient(
+        from 0deg,
+        rgba(26, 255, 179, 0.0),
+        rgba(26, 255, 179, 0.7),
+        rgba(255, 46, 252, 0.0),
+        rgba(255, 214, 107, 0.7),
+        rgba(26, 255, 179, 0.0)
+      );
+      mix-blend-mode: screen;
+      animation: logoSweep 10s linear infinite;
+      opacity: 0.7;
+    }
+
+    @keyframes logoSweep {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .uf-subtitle {
+      margin-top: 0.6rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      color: var(--text-soft);
+    }
+
+    .uf-manifest {
+      position: absolute;
+      left: 8%;
+      top: 12%;
+      width: 32%;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: var(--text-soft);
+    }
+
+    .uf-manifest h2 {
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      margin-bottom: 0.8rem;
+      color: var(--accent-gold);
+    }
+
+    .uf-manifest p {
+      margin-bottom: 0.6rem;
+    }
+
+    .uf-manifest strong {
+      color: var(--accent-neon);
+      font-weight: 600;
+    }
+
+    .uf-ethnos {
+      position: absolute;
+      right: 8%;
+      top: 12%;
+      width: 32%;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: var(--text-soft);
+    }
+
+    .uf-ethnos h2 {
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      margin-bottom: 0.8rem;
+      color: var(--accent-magenta);
+    }
+
+    .uf-ethnos ul {
+      list-style: none;
+    }
+
+    .uf-ethnos li {
+      margin-bottom: 0.4rem;
+      position: relative;
+      padding-left: 1.2rem;
+    }
+
+    .uf-ethnos li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.45rem;
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-neon), var(--accent-magenta));
+      box-shadow: 0 0 12px rgba(26, 255, 179, 0.9);
+    }
+
+    .uf-weapons {
+      position: absolute;
+      left: 8%;
+      bottom: 10%;
+      width: 32%;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: var(--text-soft);
+    }
+
+    .uf-weapons h2 {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      margin-bottom: 0.5rem;
+      color: var(--danger);
+    }
+
+    .uf-weapons p {
+      margin-bottom: 0.4rem;
+    }
+
+    .uf-weapons span.tag {
+      display: inline-block;
+      margin-top: 0.3rem;
+      margin-right: 0.3rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 75, 107, 0.6);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--danger);
+    }
+
+    .uf-culture {
+      position: absolute;
+      right: 8%;
+      bottom: 10%;
+      width: 32%;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: var(--text-soft);
+    }
+
+    .uf-culture h2 {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      margin-bottom: 0.5rem;
+      color: var(--accent-gold);
+    }
+
+    .uf-culture p {
+      margin-bottom: 0.4rem;
+    }
+
+    .uf-culture span.tag {
+      display: inline-block;
+      margin-top: 0.3rem;
+      margin-right: 0.3rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 214, 107, 0.6);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-gold);
+    }
+
+    .uf-footer {
+      position: absolute;
+      bottom: 3%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(159, 215, 199, 0.7);
+    }
+
+    .uf-footer span {
+      color: var(--accent-neon);
+    }
+
+    @media (max-width: 900px) {
+      .orbit-layout {
+        height: auto;
+        min-height: 600px;
+      }
+      .uf-manifest,
+      .uf-ethnos,
+      .uf-weapons,
+      .uf-culture {
+        position: static;
+        width: 100%;
+        margin: 1.2rem auto;
+      }
+      .uf-core {
+        position: static;
+        transform: none;
+        margin-top: 2.5rem;
+      }
+      .orbit-ring {
+        display: none;
+      }
+      .uf-footer {
+        position: static;
+        transform: none;
+        text-align: center;
+        margin-top: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="photons"></canvas>
+  <div class="glow-overlay"></div>
+
+  <main class="page">
+    <section class="orbit-layout">
+      <div class="orbit-ring"></div>
+      <div class="orbit-ring"></div>
+
+      <div class="uf-core">
+        <div class="uf-logo">-UF-</div>
+        <div class="uf-subtitle">United Forces · Past & Futur <br> Covenant</div>
+      </div>
+
+      <article class="uf-manifest">
+        <h2>Solare Doktrin</h2>
+        <p>
+          <strong>United Forces</strong> sind ein Zusammenschluss irdischer Ethnien und außerirdischer Spezies,
+          vereint durch die Ehrfurcht vor der Schöpfung.
+        </p>
+        <p>
+          Unsere Existenz folgt diesen Prinzipien: <br> dezentrale Energie, radikale
+          Nachhaltigkeit, symbiotische Technologie und eine Kultur, die Wachstum nicht gegen, sondern mit der
+          Schöpfung denkt.
+        </p>
+        <p>
+          Diese Präsenz ist unser diplomatischer Gruß an das Universum – ein leuchtendes Versprechen, die
+          Vielfalt des Lebens zu schützen.
+        </p>
+      </article>
+
+      <article class="uf-ethnos">
+        <h2>Stamm der Spezies</h2>
+        <ul>
+          <li>Konföderation irdischer Kulturen – vereint, nicht nivelliert.</li>
+          <li>Außerirdische Zivilisationen mit eigenen Mythen, Sprachen und Ritualen.</li>
+          <li>Gemeinsame Charta: Respekt vor jeder Form von Bewusstsein und Ökosystem.</li>
+          <li>Transkulturelle Archive zur Bewahrung von Geschichte und Kunst.</li>
+        </ul>
+      </article>
+
+      <article class="uf-weapons">
+        <h2> </h2>
+        <p>
+          Wir sind friedlich, solange die Schöpfung respektiert wird.         </p>
+        <p>
+          Taktische Systeme bleiben im Schatten – sichtbar nur als leise Signatur in unseren
+          photonischen Mustern und Reflexen.
+        </p>
+        <p>
+          Verteidigung ist für uns kein Krieg, sondern <em>Schutz der Möglichkeit von Kultur</em>.
+        </p>
+        <span class="tag">Quantum Defense</span>
+        <span class="tag">Ethical Warfare</span>
+        <span class="tag">Critical Mass Protocols</span>
+      </article>
+
+      <article class="uf-culture">
+        <h2>Kulturelle Evolution</h2>
+        <p>
+          Hauptinteresse der United Forces ist die <strong>kulturelle Weiterentwicklung</strong> und der
+          <strong>Erhalt der Schöpfung</strong>.
+        </p>
+        <p>
+          Wir fördern Kunst, Sprache, Philosophie und Technologie, die Welten verbindet, statt sie zu spalten.
+        </p>
+        <p>
+          Jede Entscheidung wird an einem einfachen Maßstab gemessen: Erweitert sie die Tiefe von Bewusstsein
+          und schützt sie das Netz des Lebens?
+        </p>
+        <span class="tag">Transcultural Arts</span>
+        <span class="tag">Solarpunk Infrastructures</span>
+        <span class="tag">Interstellar Ethics</span>
+      </article>
+
+      <div class="uf-footer">
+        <span>UF</span> · United Forces · Guardians of Creation
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Photon‑ähnliche Effekte (Canvas, JavaScript)
+    const canvas = document.getElementById("photons");
+    const ctx = canvas.getContext("2d");
+
+    let photons = [];
+    let w, h;
+
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener("resize", resize);
+    resize();
+
+    function createPhoton() {
+      const centerX = w / 2;
+      const centerY = h / 2;
+      const radius = Math.random() * Math.min(w, h) * 0.6;
+      const angle = Math.random() * Math.PI * 2;
+
+      const speed = 0.002 + Math.random() * 0.004;
+
+      photons.push({
+        baseRadius: radius,
+        angle,
+        speed,
+        size: 1 + Math.random() * 2,
+        hue: Math.random() < 0.5 ? 150 + Math.random() * 40 : 290 + Math.random() * 40,
+        alpha: 0.4 + Math.random() * 0.4,
+        centerX,
+        centerY
+      });
+    }
+
+    for (let i = 0; i < 160; i++) {
+      createPhoton();
+    }
+
+    function update() {
+      ctx.clearRect(0, 0, w, h);
+
+      photons.forEach((p, i) => {
+        p.angle += p.speed;
+        const wobble = Math.sin(Date.now() * 0.0005 + i) * 8;
+        const r = p.baseRadius + wobble;
+
+        const x = p.centerX + Math.cos(p.angle) * r;
+        const y = p.centerY + Math.sin(p.angle) * r;
+
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, p.size * 8);
+        const color1 = `hsla(${p.hue}, 90%, 70%, ${p.alpha})`;
+        const color2 = `hsla(${p.hue}, 90%, 40%, 0)`;
+        gradient.addColorStop(0, color1);
+        gradient.addColorStop(1, color2);
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, p.size * 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // leichte Spur
+        ctx.strokeStyle = `hsla(${p.hue}, 90%, 70%, ${p.alpha * 0.4})`;
+        ctx.lineWidth = 0.6;
+        ctx.beginPath();
+        ctx.moveTo(p.centerX, p.centerY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      });
+
+      requestAnimationFrame(update);
+    }
+
+    update();
+  </script>
+</body>
+</html>
